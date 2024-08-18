@@ -1,5 +1,9 @@
 {
   "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
   "scripts": {
     "build": "turbo run build",
     "dev": "turbo run dev --env-mode=loose",
@@ -19,7 +23,7 @@
     "eslint": "^8.53.0",
     "prettier": "^3.1.0",
     "tsconfig": "workspace:*",
-    "turbo": "latest"
+    "turbo": "^2.0.14"
   },
   "dependencies": {
     "dotenv-cli": "^7.4.2"

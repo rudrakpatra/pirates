@@ -50,12 +50,12 @@
     "typescript": "^5.4.5"
   },
   "peerDependencies": {
-    "@proto-kit/common": "*",
-    "@proto-kit/protocol": "*",
-    "@proto-kit/module": "*",
-    "@proto-kit/sdk": "*",
-    "@proto-kit/sequencer": "*",
-    "@proto-kit/library": "*",
+    "@proto-kit/common": "latest",
+    "@proto-kit/protocol": "latest",
+    "@proto-kit/module": "latest",
+    "@proto-kit/sdk": "latest",
+    "@proto-kit/sequencer": "latest",
+    "@proto-kit/library": "latest",
     "tsyringe": "^4.7.0"
   }
 }

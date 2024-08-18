@@ -27,7 +27,7 @@ export interface ChainState {
   block?: {
     height: string;
   } & ComputedBlockJSON;
-  loadBlock: () => Promise<void>;
+  loadBlock: () => Promise;
 }
 
 export interface BlockQueryResponse {
@@ -51,10 +51,10 @@ export const useChainStore = create<ChainState, [["zustand/immer", never]]>(
         state.loading = true;
       });
 
-      const graphql = process.env.NEXT_PUBLIC_PROTOKIT_GRAPHQL_URL;
+      const graphql = process.env.PUBLIC_PROTOKIT_GRAPHQL_URL;
       if (graphql === undefined) {
         throw new Error(
-          "Environment variable NEXT_PUBLIC_PROTOKIT_GRAPHQL_URL not set, can't execute graphql requests",
+          "Environment variable PUBLIC_PROTOKIT_GRAPHQL_URL not set, can't execute graphql requests",
         );
       }
 

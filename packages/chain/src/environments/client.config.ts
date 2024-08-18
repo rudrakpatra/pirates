@@ -9,7 +9,7 @@ appChain.configurePartial({
 
 appChain.configurePartial({
   GraphqlClient: {
-    url: process.env.NEXT_PUBLIC_PROTOKIT_GRAPHQL_URL,
+    url: process.env.PUBLIC_PROTOKIT_GRAPHQL_URL,
   },
 });
 
