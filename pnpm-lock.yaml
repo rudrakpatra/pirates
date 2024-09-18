@@ -145,6 +145,9 @@ importers:
       tailwindcss:
         specifier: ^3.3.6
         version: 3.3.6(ts-node@10.9.2(@swc/core@1.7.14(@swc/helpers@0.5.2))(@types/node@20.8.10)(typescript@5.4.5))
+      tailwindcss-animate:
+        specifier: ^1.0.7
+        version: 1.0.7(tailwindcss@3.3.6(ts-node@10.9.2(@swc/core@1.7.14(@swc/helpers@0.5.2))(@types/node@20.8.10)(typescript@5.4.5)))
       tslib:
         specifier: ^2.4.1
         version: 2.6.3
@@ -4595,6 +4598,11 @@ packages:
 
   tailwind-merge@2.0.0:
     resolution: {integrity: sha512-WO8qghn9yhsldLSg80au+3/gY9E4hFxIvQ3qOmlpXnqpDKoMruKfi/56BbbMg6fHTQJ9QD3cc79PoWqlaQE4rw==}
+
+  tailwindcss-animate@1.0.7:
+    resolution: {integrity: sha512-bl6mpH3T7I3UFxuvDEXLxy/VuFxBk5bbzplh7tXI68mwMokNYd1t9qPBHlnyTwfa4JGC4zP516I1hYYtQ/vspA==}
+    peerDependencies:
+      tailwindcss: '>=3.0.0 || insiders'
 
   tailwindcss@3.3.6:
     resolution: {integrity: sha512-AKjF7qbbLvLaPieoKeTjG1+FyNZT6KaJMJPFeQyLfIp7l82ggH1fbHJSsYIvnbTFQOlkh+gBYpyby5GT1LIdLw==}
@@ -10158,6 +10166,10 @@ snapshots:
   tailwind-merge@2.0.0:
     dependencies:
       '@babel/runtime': 7.25.4
+
+  tailwindcss-animate@1.0.7(tailwindcss@3.3.6(ts-node@10.9.2(@swc/core@1.7.14(@swc/helpers@0.5.2))(@types/node@20.8.10)(typescript@5.4.5))):
+    dependencies:
+      tailwindcss: 3.3.6(ts-node@10.9.2(@swc/core@1.7.14(@swc/helpers@0.5.2))(@types/node@20.8.10)(typescript@5.4.5))
 
   tailwindcss@3.3.6(ts-node@10.9.2(@swc/core@1.7.14(@swc/helpers@0.5.2))(@types/node@20.8.10)(typescript@5.4.5)):
     dependencies:

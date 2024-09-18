@@ -35,6 +35,7 @@
 	disabled={loading}
 	{...$$restProps}
 	on:click
+	on:pointerdown
 >
 	{#if loading}
 		<Loader2 class="mr-2 h-4 w-4 animate-spin" />
