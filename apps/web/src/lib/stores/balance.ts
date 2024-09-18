@@ -40,7 +40,7 @@ function createBalancesStore() {
 				})
 				.catch((e) => {
 					console.error(e);
-					toast.error('Failed: ' + e);
+					toast.error('Failed: ' + e.message, { duration: 5000 });
 				})
 				.finally(() => {
 					update((state) => ({
