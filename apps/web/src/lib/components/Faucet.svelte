@@ -29,7 +29,7 @@
 			on:click={async () => {
 				loading = true;
 				if (!$Wallet.address) {
-					await Wallet.connectWallet();
+					await Wallet.connect();
 				} else {
 					await BalancesStore.faucet();
 				}

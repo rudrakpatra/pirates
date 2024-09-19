@@ -51,7 +51,7 @@
 				class="relative w-44"
 				on:pointerdown={() => {
 					if ($Wallet.address) showWalletOptions = true;
-					else Wallet.connectWallet();
+					else Wallet.connect();
 				}}
 			>
 				<div>

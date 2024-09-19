@@ -32,7 +32,7 @@ function createWalletStore() {
 
 	return {
 		subscribe,
-		connectWallet: async () => {
+		connect: async () => {
 			if (typeof window.mina === 'undefined') {
 				throw new Error('Auro wallet not installed');
 			}
