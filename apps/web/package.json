@@ -16,6 +16,8 @@
 	},
 	"dependencies": {
 		"@aurowallet/mina-provider": "^1.0.5",
+		"@threlte/core": "^7.3.1",
+		"@threlte/extras": "^8.11.5",
 		"@types/three": "^0.168.0",
 		"chain": "workspace:*",
 		"clsx": "^2.0.0",

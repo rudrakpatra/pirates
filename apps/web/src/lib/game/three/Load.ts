@@ -8,7 +8,7 @@ import {
 	Group
 } from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import { CANNON, LOOT, SHIP } from './Constants';
+import { CANNON, LOOT, SHIP } from '../Constants';
 
 export const loadProxy = () => {
 	// Create a simple boat using primitives

@@ -67,7 +67,28 @@ export class Foam {
 		this.colors[index * 3 + 2] = color.b;
 	}
 
-	update(weightMask: boolean[][]) {
+	updateVisibleParticles(frustum: THREE.Frustum, weightMask: boolean[][]): void {
+		const visiblePositions: number[] = [];
+		const positions = this.particles.geometry.getAttribute('position');
+
+		for (let i = 0; i < this.particleCount; i++) {
+			const x = positions.getX(i);
+			const y = positions.getY(i);
+			const z = positions.getZ(i);
+
+			const particle = new THREE.Vector3(x, y, z);
+
+			if (frustum.containsPoint(particle)) {
+				visiblePositions.push(x, y, z);
+			}
+		}
+
+		this.particles.geometry.setAttribute(
+			'position',
+			new THREE.Float32BufferAttribute(visiblePositions, 3)
+		);
+		this.particles.geometry.attributes.position.needsUpdate = true;
+
 		const displacementFactor = 2;
 		const heightDisplacementFactor = 1;
 		const gridSize = this.gridSize;
@@ -76,8 +97,8 @@ export class Foam {
 			const x = this.initialPositions[i * 3];
 			const z = this.initialPositions[i * 3 + 2];
 
-			const gridX = Math.floor((x + this.seaRef.getSize().x / 2) / gridSize);
-			const gridZ = Math.floor((z + this.seaRef.getSize().y / 2) / gridSize);
+			const gridX = Math.floor((x + this.seaRef.size.x / 2) / gridSize);
+			const gridZ = Math.floor((z + this.seaRef.size.y / 2) / gridSize);
 
 			let displacementX = 0;
 			let displacementZ = 0;
@@ -102,9 +123,9 @@ export class Foam {
 
 						// Displacement based on height difference
 						const neighborPos = new THREE.Vector3(
-							neighborX * gridSize - this.seaRef.getSize().x / 2,
+							neighborX * gridSize - this.seaRef.size.x / 2,
 							0,
-							neighborZ * gridSize - this.seaRef.getSize().y / 2
+							neighborZ * gridSize - this.seaRef.size.y / 2
 						);
 						const heightDiff =
 							this.seaRef.getHeightAt(new THREE.Vector3(x, 0, z)) -

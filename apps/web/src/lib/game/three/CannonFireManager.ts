@@ -1,6 +1,6 @@
 import { Object3D, Vector3, Scene } from 'three';
 import { Explosion } from './Explosion';
-import { CANNON } from './Constants';
+import { CANNON } from '../Constants';
 
 export class CannonFireManager {
 	private explosions: Explosion[] = [];

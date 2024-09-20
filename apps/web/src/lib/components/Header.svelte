@@ -13,11 +13,25 @@
 
 	$: balance = $Wallet.address ? $BalancesStore.balances[$Wallet.address] : undefined;
 	$: $ClientStore && $Wallet.address && BalancesStore.updateBalance(); // have to wait till client is ready
-
+	let header: HTMLElement;
+	let showHeader = false;
+	let clientY: number;
 	let showWalletOptions = false;
+	$: if (header && clientY > header.offsetHeight && !showWalletOptions) showHeader = false;
+	$: if (header && clientY < header.offsetHeight * 0.5) showHeader = true;
 </script>
 
-<div class="flex items-center justify-between border-b p-2 shadow-sm">
+<svelte:window
+	on:pointermove={(e) => {
+		clientY = e.clientY;
+	}}
+/>
+
+<header
+	bind:this={header}
+	class:showHeader
+	class="sticky left-0 right-0 top-0 z-50 flex items-center justify-between border-b bg-white p-2 shadow-sm"
+>
 	<div class="container mx-auto flex">
 		<div class="flex basis-6/12 items-center justify-start">
 			<img class="h-8 w-8" src="/protokit-zinc.svg" alt="Protokit logo" />
@@ -58,11 +72,24 @@
 					{$Wallet.address ? truncateMiddle($Wallet.address, 7, 7) : 'Connect wallet'}
 				</div>
 				{#if showWalletOptions}
-					<div transition:fly={{ y: -10 }} class=" absolute right-0 top-full z-10 my-2">
+					<div transition:fly={{ y: -10 }} class=" absolute right-0 top-full z-10 my-1">
 						<WalletOptions on:close={() => (showWalletOptions = false)} />
 					</div>
 				{/if}
 			</Button>
 		</div>
 	</div>
-</div>
+</header>
+
+<style>
+	header {
+		@apply -translate-y-full;
+		@apply transition;
+		@apply duration-300;
+		@apply delay-100;
+		@apply ease-in-out;
+	}
+	header.showHeader {
+		@apply translate-y-0;
+	}
+</style>

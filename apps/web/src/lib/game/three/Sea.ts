@@ -1,8 +1,9 @@
 import * as THREE from 'three';
 import { Foam } from './Foam';
+
 export class Sea {
-	private size: THREE.Vector2;
-	private geometry: THREE.PlaneGeometry;
+	size: THREE.Vector2;
+	private geometry: THREE.BufferGeometry;
 	private material: THREE.MeshStandardMaterial;
 	private mesh: THREE.Mesh;
 	private clock: THREE.Clock;
@@ -13,13 +14,18 @@ export class Sea {
 	private scaleHeight = 0.4;
 	private foam: Foam;
 	private weightMask: boolean[][];
+	private gridSize = 10;
+	private verticesPerRow: number;
+	private verticesPerColumn: number;
 
 	constructor(size: THREE.Vector2) {
 		this.size = size;
 		this.clock = new THREE.Clock();
-		this.geometry = new THREE.PlaneGeometry(this.size.x, this.size.y, 200, 200).rotateX(
-			-Math.PI * 0.5
-		);
+		this.verticesPerRow = Math.ceil(this.size.x / this.gridSize) + 1;
+		this.verticesPerColumn = Math.ceil(this.size.y / this.gridSize) + 1;
+
+		this.geometry = new THREE.BufferGeometry();
+		this.updateGeometry(0, 0, this.verticesPerRow, this.verticesPerColumn);
 
 		this.uniforms = {
 			time: { value: 0 },
@@ -27,16 +33,43 @@ export class Sea {
 		};
 		this.material = this.createSeaMaterial();
 		this.mesh = new THREE.Mesh(this.geometry, this.material);
-		// this.mesh.translateX(this.size.x / 2);
-		// this.mesh.translateZ(this.size.y / 2);
 		this.mesh.scale.setY(this.scaleHeight);
 
-		this.foam = new Foam(this, 5000); // Create 5,000 foam particles
+		this.foam = new Foam(this, 5000);
 		this.getFoamParticles().translateX(this.size.x / 2);
 		this.getFoamParticles().translateZ(this.size.y / 2);
 		this.weightMask = Array(Math.ceil(size.x / 10))
 			.fill(null)
 			.map(() => Array(Math.ceil(size.y / 10)).fill(false));
+	}
+
+	private updateGeometry(startX: number, startZ: number, endX: number, endZ: number): void {
+		const positions: number[] = [];
+		const indices: number[] = [];
+
+		for (let z = startZ; z < endZ; z++) {
+			for (let x = startX; x < endX; x++) {
+				const xPos = (x - this.verticesPerRow / 2) * this.gridSize;
+				const zPos = (z - this.verticesPerColumn / 2) * this.gridSize;
+				positions.push(xPos, 0, zPos);
+			}
+		}
+
+		for (let z = 0; z < endZ - startZ - 1; z++) {
+			for (let x = 0; x < endX - startX - 1; x++) {
+				const topLeft = z * (endX - startX) + x;
+				const topRight = topLeft + 1;
+				const bottomLeft = (z + 1) * (endX - startX) + x;
+				const bottomRight = bottomLeft + 1;
+
+				indices.push(topLeft, bottomLeft, topRight);
+				indices.push(bottomLeft, bottomRight, topRight);
+			}
+		}
+
+		this.geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+		this.geometry.setIndex(indices);
+		this.geometry.computeVertexNormals();
 	}
 
 	private createSeaMaterial(): THREE.MeshStandardMaterial {
@@ -113,6 +146,38 @@ export class Sea {
 		return material;
 	}
 
+	update(camera: THREE.OrthographicCamera, delta: number): void {
+		const elapsedTime = this.clock.getElapsedTime();
+		this.uniforms.time.value = elapsedTime;
+
+		// Calculate visible area
+		const frustum = new THREE.Frustum().setFromProjectionMatrix(
+			new THREE.Matrix4().multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse)
+		);
+
+		const visibleStartX = Math.max(
+			0,
+			Math.floor((frustum.planes[0].constant + this.size.x / 2) / this.gridSize)
+		);
+		const visibleEndX = Math.min(
+			this.verticesPerRow,
+			Math.ceil((frustum.planes[1].constant + this.size.x / 2) / this.gridSize)
+		);
+		const visibleStartZ = Math.max(
+			0,
+			Math.floor((frustum.planes[2].constant + this.size.y / 2) / this.gridSize)
+		);
+		const visibleEndZ = Math.min(
+			this.verticesPerColumn,
+			Math.ceil((frustum.planes[3].constant + this.size.y / 2) / this.gridSize)
+		);
+
+		// Update geometry for visible area
+		this.updateGeometry(visibleStartX, visibleStartZ, visibleEndX, visibleEndZ);
+
+		// Update foam particles
+		this.foam.updateVisibleParticles(frustum, this.weightMask);
+	}
 	align(obj: THREE.Object3D) {
 		// 3 points pinning method
 		const offsetX = 1;
@@ -214,12 +279,6 @@ export class Sea {
 
 	getSize(): THREE.Vector2 {
 		return this.size;
-	}
-
-	update(delta: number): void {
-		const elapsedTime = this.clock.getElapsedTime();
-		this.uniforms.time.value = elapsedTime;
-		this.foam.update(this.weightMask);
 	}
 
 	getMesh(): THREE.Mesh {

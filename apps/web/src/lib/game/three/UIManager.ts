@@ -11,7 +11,7 @@ import {
 	OrthographicCamera
 } from 'three';
 import { Gizmo } from './Gizmo';
-import { CAMERA, CANNON, GIZMO } from './Constants';
+import { CAMERA, CANNON, GIZMO } from '../Constants';
 
 export class UIManager {
 	private raycaster: Raycaster;

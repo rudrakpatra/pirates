@@ -20,20 +20,20 @@ import { Sea } from './Sea';
 import { UIManager } from './UIManager';
 import { LootManager } from './LootManager';
 import { PlayerManager } from './PlayerManager';
-import { CAMERA, LOOT, SHIP, WORLD } from './Constants';
+import { CAMERA, LOOT, SHIP, WORLD } from '../Constants';
 import { load, loadProxy } from './Load';
 export class GameInstance {
 	scene: Scene;
 	renderer: WebGLRenderer;
 	camera: OrthographicCamera;
-	// sea: Sea;
+	sea: Sea;
 	clock: Clock;
 
 	uiManager: UIManager;
 	lootManager: LootManager;
 	playerManager: PlayerManager;
 	loadedAssetLevel = 0;
-	frustrumSize = SHIP.SIZE * 4;
+	frustrumSize = SHIP.SIZE * 10;
 	size = new Vector2(WORLD.SIZE, WORLD.SIZE);
 	canvas: HTMLCanvasElement;
 	playerPubKeyBase58?: string;
@@ -43,8 +43,15 @@ export class GameInstance {
 		this.scene = new Scene();
 		//add boxes to 0,0,0 0,0,WORLD_SIZE
 		//gridHelper
-		this.scene.add(new GridHelper(this.size.x, this.size.y, 0x555555, 0x555555));
-		this.scene.background = new Color(0x00284a);
+		const gh = new GridHelper(this.size.x, this.size.y, 0xaaaaaa, 0x888888);
+		gh.renderOrder = 100;
+		gh.material.transparent = true;
+		gh.material.opacity = 0.2;
+		gh.material.onBeforeRender = function (renderer) {
+			renderer.clearDepth();
+		};
+		this.scene.add(gh);
+		this.scene.background = new Color(0x2266aa);
 		// this.scene.fog = new FogExp2(0x00284a, 0.002);
 
 		// Initialize renderer
@@ -71,9 +78,9 @@ export class GameInstance {
 		this.camera.lookAt(new Vector3(0, 0, 0).add(CAMERA.LOOK_AT_OFFSET));
 
 		// Initialize sea
-		// this.sea = new Sea(this.size);
-		// this.scene.add(this.sea.getMesh());
-		// this.scene.add(this.sea.getFoamParticles());
+		this.sea = new Sea(this.size);
+		this.scene.add(this.sea.getMesh());
+		this.scene.add(this.sea.getFoamParticles());
 
 		// Initialize managers
 		this.uiManager = new UIManager(
@@ -127,7 +134,7 @@ export class GameInstance {
 		this.playerManager.update(delta);
 		this.lootManager.update(delta);
 		this.checkLootCollection();
-		// this.sea.update(delta);
+		this.sea.update(this.camera, delta);
 		this.updateSceneObjects();
 		this.uiManager.update();
 	}

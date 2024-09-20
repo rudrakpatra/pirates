@@ -1,6 +1,6 @@
 import { Scene, Object3D, Vector3, Euler, Mesh } from 'three';
 import { Explosion } from './Explosion';
-import {} from './Constants';
+import {} from '../Constants';
 import { Pirates } from 'chain';
 
 export class PlayerManager {

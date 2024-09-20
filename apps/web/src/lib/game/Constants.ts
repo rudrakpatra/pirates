@@ -2,9 +2,9 @@ import { Vector3 } from 'three';
 import { Pirates } from 'chain';
 const DECIMALS_MULTIPLIER = 10 ** Pirates.Constants.DECIMALS;
 const QUANISATION_LEVEL = Pirates.Constants.QUANISATION_LEVEL;
-const TURN_UNIT = Math.PI / QUANISATION_LEVEL;
+const TURN_UNIT = 360 / QUANISATION_LEVEL;
 // [-Max,   0  .., Max]
-export const TURNRATES = Array(Pirates.Constants.MAX_TURN_RATE * 2 + 1)
+const TURNRATES = Array(Pirates.Constants.MAX_TURN_RATE * 2 + 1)
 	.fill(0)
 	.map((_, i) => {
 		const k = i - Pirates.Constants.MAX_TURN_RATE;
@@ -24,7 +24,7 @@ export const SHIP = {
 	INITIAL_HEALTH: Pirates.Constants.INITIAL_SHIP_HEALTH,
 	INITIAL_CANNONBALLS: Pirates.Constants.INITIAL_CANNONBALLS,
 	INITIAL_GOLD: Pirates.Constants.INITIAL_GOLD,
-	TURNRATES: Array(Pirates.Constants.QUANISATION_LEVEL).fill(0)
+	TURNRATES: TURNRATES
 };
 export const GIZMO = {
 	SIZE: Pirates.Constants.SHIP_SIZE / DECIMALS_MULTIPLIER
