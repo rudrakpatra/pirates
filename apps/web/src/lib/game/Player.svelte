@@ -1,33 +1,27 @@
+<script lang="ts" context="module">
+	export let pos = new Vector2(0, 0);
+</script>
+
 <script lang="ts">
 	import Button from '$lib/components/shared/Button.svelte';
 	import { Group } from 'three';
-	import { useThrelte, useTask } from '@threlte/core';
+	import { useTask } from '@threlte/core';
 	import { SHIP } from './Constants';
 	import Ship from './Ship.svelte';
 	import { DEG2RAD } from 'three/src/math/MathUtils.js';
 	import Range from '$lib/components/shared/Range.svelte';
+	import { Vector2 } from 'three';
+	import { portalAction, sea } from './Utils';
 	export let selectedTurnRate = Math.floor(SHIP.TURNRATES.length / 2);
 	let uiTurnRate = selectedTurnRate;
 	let shipRef: Group;
 	useTask((d) => {
 		shipRef.rotation.y -= SHIP.TURNRATES[selectedTurnRate] * d * DEG2RAD;
-		shipRef;
+		pos = pos
+			.clone()
+			.add(new Vector2(0, SHIP.SPEED * d).rotateAround({ x: 0, y: 0 }, -shipRef.rotation.y));
+		sea.alignToSurface(shipRef);
 	});
-	const { renderer } = useThrelte();
-	const portalAction = (el: HTMLElement) => {
-		const target = renderer.domElement.parentElement;
-		if (!target) {
-			console.warn('HTML: target is undefined.');
-			return;
-		}
-		target.appendChild(el);
-		return {
-			destroy: () => {
-				if (!el.parentNode) return;
-				el.parentNode.removeChild(el);
-			}
-		};
-	};
 </script>
 
 <Ship bind:ref={shipRef} />
