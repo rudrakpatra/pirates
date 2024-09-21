@@ -4,7 +4,7 @@ import { Foam } from './Foam';
 export class Sea {
 	size: THREE.Vector2;
 	private geometry: THREE.BufferGeometry;
-	private material: THREE.MeshStandardMaterial;
+	material: THREE.MeshStandardMaterial;
 	private mesh: THREE.Mesh;
 	private clock: THREE.Clock;
 	private uniforms: {

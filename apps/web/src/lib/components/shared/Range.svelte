@@ -1,16 +1,16 @@
 <script lang="ts">
 	import { cn } from '$lib/utils';
 	import { createEventDispatcher } from 'svelte';
-
+	export let thumbSize = '1rem';
 	let className = '',
-		knobClassName = '',
+		thumbClassName = '',
 		trackClassName = '',
 		trackPrimaryClassName = '';
 	export {
 		className as class,
 		trackPrimaryClassName as trackPrimaryClass,
 		trackClassName as trackClass,
-		knobClassName as knobClass
+		thumbClassName as thumbClass
 	};
 	export let variant: 'simple' | 'bicolored' = 'simple';
 	export let min = 0;
@@ -22,12 +22,12 @@
 	let ref: HTMLInputElement;
 	let value = defaultValue;
 	let trackWidth = 0;
-	let knobWidth = 0;
+	let thumbWidth = 0;
 
 	$: x = ((defaultValue - min) / (max - min)) * trackWidth;
-	$: y = ((value - min) / (max - min)) * (trackWidth - knobWidth);
-	$: leftPosition = Math.min(x, y + knobWidth / 2);
-	$: rightPosition = Math.min(trackWidth - x, trackWidth - y - knobWidth / 2);
+	$: y = ((value - min) / (max - min)) * (trackWidth - thumbWidth);
+	$: leftPosition = Math.min(x, y + thumbWidth / 2);
+	$: rightPosition = Math.min(trackWidth - x, trackWidth - y - thumbWidth / 2);
 
 	function handleInput() {
 		value = ref.valueAsNumber;
@@ -52,6 +52,7 @@
 		on:change={handleChange}
 		on:input={handleInput}
 		{...$$restProps}
+		style="--thumb-size: {thumbSize};"
 	/>
 	<div class="pointer-events-none absolute inset-0">
 		<div
@@ -68,10 +69,10 @@
 		<div
 			class={cn(
 				' absolute top-1/2 grid aspect-square h-8 -translate-y-1/2 place-items-center rounded-full bg-white shadow',
-				knobClassName
+				thumbClassName
 			)}
-			bind:clientWidth={knobWidth}
-			style="left:{y}px"
+			bind:clientWidth={thumbWidth}
+			style="left:{y}px;height:{thumbSize};width:{thumbSize};"
 		>
 			<slot>
 				{value}
@@ -79,3 +80,17 @@
 		</div>
 	</div>
 </div>
+
+<style>
+	input[type='range'] {
+		-webkit-appearance: none;
+		appearance: none;
+		background: transparent;
+	}
+	input[type='range']::-webkit-slider-thumb {
+		-webkit-appearance: none;
+		appearance: none;
+		height: var(--thumb-size, 1rem);
+		width: var(--thumb-size, 1rem);
+	}
+</style>

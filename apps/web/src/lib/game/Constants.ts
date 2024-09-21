@@ -1,4 +1,4 @@
-import { Vector3 } from 'three';
+import { Color, Vector3 } from 'three';
 import { Pirates } from 'chain';
 const DECIMALS_MULTIPLIER = 10 ** Pirates.Constants.DECIMALS;
 const QUANISATION_LEVEL = Pirates.Constants.QUANISATION_LEVEL;
@@ -10,9 +10,19 @@ const TURNRATES = Array(Pirates.Constants.MAX_TURN_RATE * 2 + 1)
 		const k = i - Pirates.Constants.MAX_TURN_RATE;
 		return k * TURN_UNIT;
 	});
-
+export const SUN = {
+	COLOR: new Color(0xffddaa)
+};
+export const SEA = {
+	SIZE: Pirates.Constants.WORLD_SIZE / DECIMALS_MULTIPLIER,
+	COLOR: {
+		LIGHT: new Color(0x306880),
+		DARK: new Color(0x206080)
+	}
+};
 export const WORLD = {
-	SIZE: Pirates.Constants.WORLD_SIZE / DECIMALS_MULTIPLIER
+	SIZE: Pirates.Constants.WORLD_SIZE / DECIMALS_MULTIPLIER,
+	COLOR: new Color(0xa0c0f0)
 };
 export const CAMERA = {
 	OFFSET: new Vector3(0, 40, 40),
@@ -36,7 +46,7 @@ export const LOOT = {
 };
 export const CANNON = {
 	DAMAGE: Pirates.Constants.CANNON_DAMAGE,
-	RANGE: Pirates.Constants.CANNON_RANGE,
+	RANGE: Pirates.Constants.CANNON_RANGE / DECIMALS_MULTIPLIER,
 	COST: Pirates.Constants.CANNON_COST,
 	SIZE: Pirates.Constants.CANNON_SIZE / DECIMALS_MULTIPLIER,
 	WAIT_TIME: Pirates.Constants.CANNON_WAIT_TIME
