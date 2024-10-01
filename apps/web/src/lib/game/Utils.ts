@@ -1,5 +1,5 @@
 import { useThrelte } from '@threlte/core';
-import { BufferAttribute, BufferGeometry, Mesh, Vector2, Vector3 } from 'three';
+import { BufferAttribute, BufferGeometry, Color, Mesh, Vector2, Vector3 } from 'three';
 import type Geometries from 'three/src/renderers/common/Geometries.js';
 
 export function generateRandomPointsInGrid(
@@ -107,4 +107,14 @@ export const computeAngleVertexNormals = function (geometry: BufferGeometry, ang
 
 	// Flag geometry for update
 	geometry.attributes.normal.needsUpdate = true;
+};
+
+/**
+ * Returns a string representing a color in RGB format, given a THREE.Color instance.
+ * @param {THREE.Color} color - The color to convert.
+ * @returns {string} The color as a string in RGB format, e.g. "rgb(255, 0, 0)".
+ */
+
+export const rgbFromColor = (color: Color) => {
+	return `rgb(${color.r * 255}, ${color.g * 255}, ${color.b * 255})`;
 };

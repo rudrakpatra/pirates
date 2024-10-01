@@ -7,7 +7,7 @@
 			value: 0
 		},
 		scale: {
-			value: 200
+			value: 100
 		},
 		amp: {
 			value: 3
@@ -138,38 +138,53 @@
 		            vec3 p = position+offset;
 		            vec2 move = vec2(1, 0);
 		            vec3 pos = moveWave(p)-offset;
+					pos.y*=smoothstep(1.0,0.0,length(pos.xz)/100.0);
+					float waveHt=pos.y;
+					vec3 center = vec3(0,-1500.0,0);
+					pos=center+normalize(pos-center)*1500.0; 
+					pos+=waveHt*vec3(0,1,0);
+
 		            vec3 pos2 = moveWave(p + move.xyy)-offset;
 		            vec3 pos3 = moveWave(p + move.yyx)-offset;
 		            objectNormal = normalize(cross(normalize(pos2-pos), normalize(pos3-pos)));
+					
+					
 		        `
 			)
 			.replace(
 				`#include <begin_vertex>`,
 				`#include <begin_vertex>
 		            transformed = pos;
-		            vHeight = pos.y;
+		            vHeight = waveHt;
 		        `
 			);
 		shader.fragmentShader = `
+		 		uniform float time;
 				uniform float offsetX;
 				uniform float offsetY;
 				varying float vHeight;
 				${shader.fragmentShader}
 			  `
 			.replace(
-				`#include <color_fragment>`,
+				`#include <map_fragment>`,
+				`//time based noise wiggle
+				vec2 noise=vec2(sin(vMapUv.x*3.14+time*2.0)*0.01,cos(vMapUv.y*3.14+time*2.0)*0.01);
+			 	#ifdef USE_MAP\n\t\
+				vec4 sampledDiffuseColor = texture2D( map, vMapUv+noise);\n\t\
+				#ifdef DECODE_VIDEO_TEXTURE\n\t\t\
+				sampledDiffuseColor = vec4( mix( pow( sampledDiffuseColor.rgb * 0.9478672986 + vec3( 0.0521327014 ), vec3( 2.4 ) ), sampledDiffuseColor.rgb * 0.0773993808, vec3( lessThanEqual( sampledDiffuseColor.rgb, vec3( 0.04045 ) ) ) ), sampledDiffuseColor.w );\n\t\n\t\
+				#endif\n\t\
+				diffuseColor *= sampledDiffuseColor;\n#endif
+				diffuseColor = mix( diffuseColor*diffuseColor,diffuseColor, 0.5 + vHeight*0.2 );
 				`
-			#include <color_fragment>
-			diffuseColor.rgb = mix(vec3(${SEA.COLOR.DARK.toArray().join(',')}), vec3(${SEA.COLOR.LIGHT.toArray().join(',')}), smoothstep(0.0, 2.0, vHeight));
+			)
+			.replace(
+				`vec3 totalDiffuse = reflectedLight.directDiffuse + reflectedLight.indirectDiffuse;`,
+				`
+			vec3 gradColor = mix(vec3(${SEA.COLOR.DARK.toArray().join(',')}), vec3(${SEA.COLOR.LIGHT.toArray().join(',')}), smoothstep(0.0, 1.0, vHeight));
+			vec3 totalDiffuse = reflectedLight.directDiffuse + reflectedLight.indirectDiffuse;
+			totalDiffuse = mix(totalDiffuse+gradColor , totalDiffuse+gradColor * 1.1, smoothstep(0.0, 1.0, vHeight));
 			`
-			)
-			.replace(
-				`vec2 uv = vec2( dot( x, normal ), dot( y, normal ) ) * 0.495 + 0.5;`,
-				`vec2 uv = vec2( dot( x, normal ), dot( y, normal ) ) * 0.2+ 0.5;`
-			)
-			.replace(
-				`vec3 outgoingLight = diffuseColor.rgb * matcapColor.rgb;`,
-				`vec3 outgoingLight = diffuseColor.rgb * vec3(mix(0.5, 1.0,matcapColor.b));`
 			);
 	};
 	const updateUniforms = (d: number) => {
@@ -185,24 +200,23 @@
 	import { DEG2RAD } from 'three/src/math/MathUtils.js';
 	import { useTexture } from '@threlte/extras';
 	import type { WebGLProgramParametersWithUniforms } from 'three/src/renderers/webgl/WebGLPrograms.js';
-	const sz = 500,
-		tx = 20,
-		ty = 20;
+	const size = 500,
+		repeatX = 20,
+		repeatY = 20;
 	const detail = 100;
-	let g = new PlaneGeometry(sz, sz, detail, detail).rotateX(-90 * DEG2RAD);
+	let g = new PlaneGeometry(size, size, detail, detail).rotateX(-90 * DEG2RAD);
 	// const originalPositions = g.attributes.position.array.slice();
-	const awaitedNormalMap = useTexture('sea_normal.jpg', {
+	const awaitedMap = useTexture('sea.jpg', {
 		transform: (texture) => {
 			texture.wrapS = RepeatWrapping;
 			texture.wrapT = RepeatWrapping;
-			texture.repeat.set(tx, ty);
+			texture.repeat.set(repeatX, repeatY);
 			return texture;
 		}
 	});
-	const awaitedMatcap = useTexture('matcap_blue.jpg', {});
 	useTask((d) => {
 		updateUniforms(d);
-		if ($awaitedNormalMap) $awaitedNormalMap.offset.set((pos.x * tx) / sz, (-pos.y * ty) / sz);
+		if ($awaitedMap) $awaitedMap.offset.set((pos.x * repeatX) / size, (-pos.y * repeatY) / size);
 	});
 </script>
 
@@ -215,21 +229,9 @@
 		};
 	}}
 />
-{#await awaitedNormalMap then normalMap}
-	{#await awaitedMatcap then matcap}
-		<T.Mesh>
-			<T is={g} />
-			<T.MeshMatcapMaterial
-				on:create={({ ref }) => {
-					ref.normalMap = normalMap;
-					ref.matcap = matcap;
-					ref.onBeforeCompile = onBeforeCompile;
-				}}
-			/>
-		</T.Mesh>
-	{/await}
+{#await awaitedMap then map}
+	<T.Mesh>
+		<T is={g} />
+		<T.MeshStandardMaterial {map} {onBeforeCompile} />
+	</T.Mesh>
 {/await}
-<!-- <T.Mesh>
-	<T is={g} />
-	<T is={material} />
-</T.Mesh> -->

@@ -22,7 +22,10 @@ export const SEA = {
 };
 export const WORLD = {
 	SIZE: Pirates.Constants.WORLD_SIZE / DECIMALS_MULTIPLIER,
-	COLOR: new Color(0xa0c0f0)
+	COLOR: {
+		LIGHT: new Color(0xa1d8fb),
+		DARK: new Color(0x51a8db)
+	}
 };
 export const CAMERA = {
 	OFFSET: new Vector3(0, 40, 40),

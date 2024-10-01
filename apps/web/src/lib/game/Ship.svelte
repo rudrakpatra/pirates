@@ -8,7 +8,7 @@
 	const model = new Group();
 	const gltf = useGltf('/Ship.glb');
 	const component = forwardEventHandlers();
-	const dip = 0.5;
+	const dip = 0.2;
 	useTask((d) => {
 		waves.alignToSurface(model);
 		model.position.y -= dip;
@@ -20,7 +20,7 @@
 		<slot name="fallback" />
 	{:then gltf}
 		<T is={model}>
-			<T.Group rotation.y={Math.PI}>
+			<T.Group rotation.x={-Math.PI * 0.05} rotation.y={Math.PI}>
 				<T.Mesh
 					geometry={gltf.nodes.ship_light_8angles_1.geometry}
 					material={gltf.materials['wood.001']}
