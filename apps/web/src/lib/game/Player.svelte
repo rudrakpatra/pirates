@@ -1,5 +1,10 @@
 <script lang="ts" context="module">
-	export let pos = new Vector2(0, 0);
+	import { writable } from 'svelte/store';
+	export let position = writable(new Vector3(0, 0, 0));
+	export let velocity = writable(new Vector3(0, 0, 0));
+	export let health = writable(SHIP.INITIAL_HEALTH);
+	export let cannonballs = writable(SHIP.INITIAL_CANNONBALLS);
+	export let gold = writable(SHIP.INITIAL_GOLD);
 </script>
 
 <script lang="ts">
@@ -47,16 +52,12 @@
 	let shipRef: Group;
 	let mapRef: HTMLImageElement;
 	let cannonRef: HTMLImageElement;
-	let x = '0',
-		y = '0';
 	useTask((d) => {
 		if (!shipRef) return;
 		shipRef.rotation.y -= SHIP.TURNRATES[selectedTurnRate] * d * DEG2RAD;
-		pos = pos
-			.clone()
-			.add(new Vector2(0, SHIP.SPEED * d).rotateAround({ x: 0, y: 0 }, -shipRef.rotation.y));
-		x = pos.x.toFixed(0);
-		y = pos.y.toFixed(0);
+		velocity.set(new Vector3(0, 0, SHIP.SPEED * d).applyQuaternion(shipRef.quaternion));
+		position.set($position.add($velocity));
+		shipRef.position.copy($position);
 	});
 
 	const keyDown = (e: KeyboardEvent) => {
@@ -100,16 +101,16 @@
 		}}
 		on:change={computeIntersection}
 		enablePan={false}
-		maxDistance={500}
+		maxDistance={800}
 		minDistance={20}
-		maxPolarAngle={Math.PI * 0.4}
-		minPolarAngle={0}
+		maxPolarAngle={Math.PI * 0.45}
+		minPolarAngle={Math.PI * 0.05}
 	/>
 </T.PerspectiveCamera>
 <Trajectory {intersection} />
 <div use:portalAction class="fixed bottom-2 left-2 right-2 flex justify-between gap-2">
 	<div class="flex flex-col gap-2">
-		<Button tabindex="-1" class="h-fit p-0">
+		<Button tabindex="-1" class="focus-visible:ring-none h-fit p-0">
 			<img
 				bind:this={mapRef}
 				draggable="false"
@@ -118,7 +119,9 @@
 				alt="map"
 			/>
 		</Button>
-		<div class="w-[10ch] text-center text-white">{x},{y}</div>
+		<div class="w-[10ch] text-center text-white">
+			{$position.x.toFixed(0)}, {$position.z.toFixed(0)}
+		</div>
 	</div>
 	<div class="max-w-xl flex-1 self-end">
 		<div class="text-center text-white">Turn Rate</div>
@@ -141,7 +144,7 @@
 			<div class="text-center text-xl opacity-75">{SHIP.TURNRATES[uiTurnRate]}</div>
 		</Range>
 	</div>
-	<Button tabindex="-1" class="h-fit -rotate-90 p-0 ">
+	<Button tabindex="-1" class="h-fit -rotate-90 p-0">
 		<img
 			bind:this={cannonRef}
 			draggable="false"

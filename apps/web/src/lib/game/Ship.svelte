@@ -2,16 +2,21 @@
 	import { Group } from 'three';
 	import { T, useTask, forwardEventHandlers } from '@threlte/core';
 	import { useGltf } from '@threlte/extras';
-	import { waves } from './Sea.svelte';
-	import { DEG2RAD } from 'three/src/math/MathUtils.js';
+	import { rayCastOnSea } from './Sea.svelte';
+	import { Vector3 } from 'three/src/math/Vector3.js';
+	import { position as playerPosition } from './Player.svelte';
+	import { Quaternion } from 'three/src/math/Quaternion.js';
 	export const ref = new Group();
 	const model = new Group();
-	const gltf = useGltf('/Ship.glb');
+	const gltf = useGltf('/Ship2.glb');
 	const component = forwardEventHandlers();
-	const dip = 0.2;
+	const size = new Vector3(1, 0.5, 2);
 	useTask((d) => {
-		waves.alignToSurface(model);
-		model.position.y -= dip;
+		const { position, normal } = rayCastOnSea(ref.position.sub($playerPosition), size);
+		const quaternion = new Quaternion().setFromUnitVectors(new Vector3(0, 1, 0), normal);
+		model.position.copy(position);
+		model.quaternion.copy(quaternion);
+		model.updateMatrix();
 	});
 </script>
 
@@ -21,30 +26,11 @@
 	{:then gltf}
 		<T is={model}>
 			<T.Group rotation.x={-Math.PI * 0.05} rotation.y={Math.PI}>
-				<T.Mesh
-					geometry={gltf.nodes.ship_light_8angles_1.geometry}
-					material={gltf.materials['wood.001']}
-				/>
-				<T.Mesh
-					geometry={gltf.nodes.ship_light_8angles_2.geometry}
-					material={gltf.materials.woodDark}
-				/>
-				<T.Mesh
-					geometry={gltf.nodes.ship_light_8angles_3.geometry}
-					material={gltf.materials.iron}
-				/>
-				<T.Mesh
-					geometry={gltf.nodes.ship_light_8angles_4.geometry}
-					material={gltf.materials.window}
-				/>
-				<T.Mesh
-					geometry={gltf.nodes.ship_light_8angles_5.geometry}
-					material={gltf.materials.textile}
-				/>
-				<T.Mesh
-					geometry={gltf.nodes.ship_light_8angles_6.geometry}
-					material={gltf.materials._defaultMat}
-				/>
+				<T.Mesh geometry={gltf.nodes.Wood.geometry} material={gltf.materials.wood} />
+				<T.Mesh geometry={gltf.nodes.WoodDark.geometry} material={gltf.materials.woodDark} />
+				<T.Mesh geometry={gltf.nodes.Iron.geometry} material={gltf.materials.iron} />
+				<T.Mesh geometry={gltf.nodes.Window.geometry} material={gltf.materials.window} />
+				<T.Mesh geometry={gltf.nodes.Textile.geometry} material={gltf.materials.textile} />
 			</T.Group>
 		</T>
 	{:catch error}

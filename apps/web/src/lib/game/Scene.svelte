@@ -7,36 +7,16 @@
 	import Clouds from './Clouds.svelte';
 	import { CanvasTexture } from 'three/src/textures/CanvasTexture.js';
 	import { rgbFromColor } from './Utils';
+	import Others from './Others.svelte';
 
 	const { scene, renderer } = useThrelte();
-	export const generateGradientSkyTexture = () => {
-		var size = 512;
-
-		// create canvas
-		let canvas = document.createElement('canvas');
-		canvas.width = size;
-		canvas.height = size;
-
-		// get context
-		let context = canvas.getContext('2d');
-		if (!context) throw new Error('Failed to generate texture 2d context not supported');
-
-		// draw gradient
-		context.rect(0, 0, size, size);
-		var gradient = context.createLinearGradient(0, 0, 0, size);
-		gradient.addColorStop(0, rgbFromColor(WORLD.COLOR.DARK));
-		gradient.addColorStop(0.5, rgbFromColor(WORLD.COLOR.LIGHT));
-		context.fillStyle = gradient;
-		context.fill();
-		return new CanvasTexture(canvas);
-	};
-	scene.background = generateGradientSkyTexture();
 	renderer.toneMapping = ACESFilmicToneMapping;
 	renderer.toneMappingExposure = 1.2;
 	// renderer.domElement.style.background = 'linear-gradient(to top, #A0DEFF 60%, #5AB2FF 100%)';
 </script>
 
 <Player />
+<Others />
 <Clouds />
 <Sea />
 <T.DirectionalLight

@@ -41,13 +41,13 @@
 </div>
 {#if intersection}
 	<T.Mesh
-		bind:ref={meshRef}
-		renderOrder={-0}
+		renderOrder={200}
 		on:create={({ ref }) => {
-			ref.onBeforeRender = (renderer) => {
+			ref.onBeforeRender = function (renderer) {
 				renderer.clearDepth();
 			};
 		}}
+		bind:ref={meshRef}
 	>
 		<T.CircleGeometry
 			args={[CANNON.SIZE, 32]}

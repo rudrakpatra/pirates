@@ -1,108 +1,97 @@
 <script lang="ts" context="module">
-	import { Group, PlaneGeometry, Quaternion, RepeatWrapping, Vector2, Vector3 } from 'three';
-	import { pos } from './Player.svelte';
-	import { SEA } from './Constants';
+	import { BackSide, CanvasTexture, PlaneGeometry, RepeatWrapping, Vector3 } from 'three';
+	import { position as playerPosition } from './Player.svelte';
+	import { SEA, WORLD } from './Constants';
+
+	const size = SEA.SIZE * 0.5;
+	const detail = 100;
+
 	const uniforms = {
 		time: {
 			value: 0
 		},
 		scale: {
-			value: 100
+			value: 200
 		},
 		amp: {
-			value: 3
+			value: 2
 		},
-		offsetX: {
-			value: 0
-		},
-		offsetY: {
-			value: 0
+		offset: {
+			value: new Vector3(0, 0, 0)
 		}
 	};
-	export const waves = {
-		heightAt: (x: number, y: number) => {
-			const pos = new Vector2(x, y).add({ x: uniforms.offsetX.value, y: uniforms.offsetY.value });
-			let retVal = pos.clone();
-			let ang;
-			const kzx = 360.0 / uniforms.scale.value;
+	const wave = (p: Vector3): Vector3 => {
+		const pos = p.clone();
+		const kzx = 360.0 / uniforms.scale.value;
+		let ang: number;
 
-			// Wave1 (135 degrees)
-			ang = 50.0 * uniforms.time.value + -1.0 * pos.x * kzx + -2.0 * pos.y * kzx;
-			ang = ((ang % 360.0) * Math.PI) / 180.0;
-			retVal.y = 3.0 * Math.sin(ang);
+		// Wave1 (135 degrees)
+		ang = 50.0 * uniforms.time.value + -1.0 * p.x * kzx + -2.0 * p.z * kzx;
+		ang = ((ang % 360.0) * Math.PI) / 180.0;
+		pos.y = 3.0 * Math.sin(ang);
 
-			// Wave2 (090 degrees)
-			ang = 25.0 * uniforms.time.value + -3.0 * pos.x * kzx;
-			ang = ((ang % 360.0) * Math.PI) / 180.0;
-			retVal.y += 2.0 * Math.sin(ang);
+		// Wave2 (090 degrees)
+		ang = 25.0 * uniforms.time.value + -3.0 * p.x * kzx;
+		ang = ((ang % 360.0) * Math.PI) / 180.0;
+		pos.y += 2.0 * Math.sin(ang);
 
-			// Wave3 (180 degrees)
-			ang = 15.0 * uniforms.time.value - 3.0 * pos.y * kzx;
-			ang = ((ang % 360.0) * Math.PI) / 180.0;
-			retVal.y += 2.0 * Math.sin(ang);
+		// Wave3 (180 degrees)
+		ang = 15.0 * uniforms.time.value - 3.0 * p.z * kzx;
+		ang = ((ang % 360.0) * Math.PI) / 180.0;
+		pos.y += 2.0 * Math.sin(ang);
 
-			// Wave4 (225 degrees)
-			ang = 50.0 * uniforms.time.value + 4.0 * pos.x * kzx + 8.0 * pos.y * kzx;
-			ang = ((ang % 360.0) * Math.PI) / 180.0;
-			retVal.y += 0.5 * Math.sin(ang);
+		// Wave4 (225 degrees)
+		ang = 50.0 * uniforms.time.value + 4.0 * p.x * kzx + 8.0 * p.z * kzx;
+		ang = ((ang % 360.0) * Math.PI) / 180.0;
+		pos.y += 0.5 * Math.sin(ang);
 
-			// Wave5 (270 degrees)
-			ang = 50.0 * uniforms.time.value + 8.0 * pos.x * kzx;
-			ang = ((ang % 360.0) * Math.PI) / 180.0;
-			retVal.y += 0.5 * Math.sin(ang);
+		// Wave5 (270 degrees)
+		ang = 50.0 * uniforms.time.value + 8.0 * p.x * kzx;
+		ang = ((ang % 360.0) * Math.PI) / 180.0;
+		pos.y += 0.5 * Math.sin(ang);
 
-			return retVal.y * uniforms.amp.value * 0.125;
-		},
-		alignToSurface(obj: Group) {
-			// 3 points pinning method
-			const offsetX = 1;
-			const offsetZ = 1;
+		// Apply amplitude
+		pos.y *= uniforms.amp.value * 0.125;
 
-			// Sample heights at points
-			const sample = obj.position.clone();
-			const centerHeight = this.heightAt(sample.x, sample.z);
-			const forwardHeight = this.heightAt(sample.x, sample.z + offsetZ);
-			const rightHeight = this.heightAt(sample.x + offsetX, sample.z);
+		return pos;
+	};
 
-			// Create points in local space
-			const p0 = new Vector3(0, centerHeight, 0);
-			const p1 = new Vector3(0, forwardHeight, offsetZ);
-			const p2 = new Vector3(offsetX, rightHeight, 0);
+	/**
+	 * Casts a ray on the sea surface from the given the world position
+	 * @param group The object to align
+	 * @param position The position to snap to
+	 * @returns information about the ray
+	 */
+	export const rayCastOnSea = (position: Vector3, size: Vector3) => {
+		const offset = get(playerPosition);
+		const p = position.clone().add(offset);
+		// Calculate wave-affected positions
+		const pos0 = wave(p).sub(offset);
+		const pos1 = wave(p.clone().add(new Vector3(size.x, 0, 0))).sub(offset);
+		const pos2 = wave(p.clone().add(new Vector3(0, 0, size.z))).sub(offset);
 
-			// Calculate normal
-			const normal = new Vector3().crossVectors(p1.clone().sub(p0), p2.clone().sub(p0)).normalize();
+		// Calculate normal
+		const normal = new Vector3()
+			.crossVectors(pos1.clone().sub(pos0), pos2.clone().sub(pos0))
+			.normalize();
 
-			// Ensure normal points upwards
-			if (normal.y < 0) normal.negate();
-
-			// Create rotation to align up vector with normal
-			const quaternion = new Quaternion().setFromUnitVectors(new Vector3(0, 1, 0), normal);
-
-			// Apply rotation
-			obj.quaternion.copy(quaternion);
-
-			// Move obj to correct height
-			obj.position.y = centerHeight;
-
-			// Update obj's matrix
-			obj.updateMatrix();
-		}
+		// Ensure normal points upwards
+		if (normal.y < 0) normal.negate();
+		return { position: pos0.setY(pos0.y - size.y / 2), normal };
 	};
 	const onBeforeCompile = (shader: WebGLProgramParametersWithUniforms) => {
 		shader.uniforms.time = uniforms.time;
 		shader.uniforms.scale = uniforms.scale;
 		shader.uniforms.amp = uniforms.amp;
-		shader.uniforms.offsetX = uniforms.offsetX;
-		shader.uniforms.offsetY = uniforms.offsetY;
+		shader.uniforms.offset = uniforms.offset;
 
 		shader.vertexShader = `
 		        uniform float time;
 		        uniform float scale;
 				uniform float amp;
-				uniform float offsetX;
-				uniform float offsetY;
-		        varying float vHeight;
-		        vec3 moveWave(vec3 p){
+				uniform vec3 offset;
+		        varying vec3 vpos;
+		        vec3 wave(vec3 p){
 		            vec3 retVal = p;
 		            float ang;
 		            float kzx = 360.0/scale;
@@ -134,35 +123,25 @@
 			.replace(
 				`#include <beginnormal_vertex>`,
 				`#include <beginnormal_vertex>
-					vec3 offset=vec3(offsetX,0,offsetY);
 		            vec3 p = position+offset;
 		            vec2 move = vec2(1, 0);
-		            vec3 pos = moveWave(p)-offset;
-					pos.y*=smoothstep(1.0,0.0,length(pos.xz)/100.0);
-					float waveHt=pos.y;
-					vec3 center = vec3(0,-1500.0,0);
-					pos=center+normalize(pos-center)*1500.0; 
-					pos+=waveHt*vec3(0,1,0);
-
-		            vec3 pos2 = moveWave(p + move.xyy)-offset;
-		            vec3 pos3 = moveWave(p + move.yyx)-offset;
-		            objectNormal = normalize(cross(normalize(pos2-pos), normalize(pos3-pos)));
-					
-					
+					vec3 pos0 = wave(p)-offset;
+					vec3 pos1 = wave(p + move.xyy)-offset;
+		            vec3 pos2 = wave(p + move.yyx)-offset;
+		            objectNormal = normalize(cross(pos1-pos0, pos2-pos0));
 		        `
 			)
 			.replace(
 				`#include <begin_vertex>`,
 				`#include <begin_vertex>
-		            transformed = pos;
-		            vHeight = waveHt;
+					transformed = pos0;
+					pos0.y*=smoothstep(1.0,0.0,length(pos0.xz)/${(size / 2).toFixed(1)});
+		            vpos = pos0;
 		        `
 			);
 		shader.fragmentShader = `
 		 		uniform float time;
-				uniform float offsetX;
-				uniform float offsetY;
-				varying float vHeight;
+				varying vec3 vpos;
 				${shader.fragmentShader}
 			  `
 			.replace(
@@ -175,22 +154,28 @@
 				sampledDiffuseColor = vec4( mix( pow( sampledDiffuseColor.rgb * 0.9478672986 + vec3( 0.0521327014 ), vec3( 2.4 ) ), sampledDiffuseColor.rgb * 0.0773993808, vec3( lessThanEqual( sampledDiffuseColor.rgb, vec3( 0.04045 ) ) ) ), sampledDiffuseColor.w );\n\t\n\t\
 				#endif\n\t\
 				diffuseColor *= sampledDiffuseColor;\n#endif
-				diffuseColor = mix( diffuseColor*diffuseColor,diffuseColor, 0.5 + vHeight*0.2 );
+				diffuseColor = mix( diffuseColor*diffuseColor,diffuseColor, 0.5 + vpos.y*0.2 );
+				float l=length(vpos.xz);
+				float r=${(size / 2).toFixed(1)};
+				diffuseColor.a=l<r?1.0:0.0;
 				`
 			)
 			.replace(
 				`vec3 totalDiffuse = reflectedLight.directDiffuse + reflectedLight.indirectDiffuse;`,
 				`
-			vec3 gradColor = mix(vec3(${SEA.COLOR.DARK.toArray().join(',')}), vec3(${SEA.COLOR.LIGHT.toArray().join(',')}), smoothstep(0.0, 1.0, vHeight));
+			vec3 gradColor = mix(vec3(${SEA.COLOR.DARK.toArray().join(',')}), vec3(${SEA.COLOR.LIGHT.toArray().join(',')}), smoothstep(0.0, 1.0, vpos.y));
 			vec3 totalDiffuse = reflectedLight.directDiffuse + reflectedLight.indirectDiffuse;
-			totalDiffuse = mix(totalDiffuse+gradColor , totalDiffuse+gradColor * 1.1, smoothstep(0.0, 1.0, vHeight));
+			totalDiffuse = mix(totalDiffuse+gradColor , totalDiffuse+gradColor * 1.1, smoothstep(0.0, 1.0, vpos.y));
+			vec3 sky=vec3(${WORLD.COLOR.LIGHT.toArray().join(',')});
+			float factor=smoothstep(1.0,0.0,pow(l/r,4.0));
+			totalDiffuse=mix(sky,totalDiffuse,factor);
 			`
 			);
+		console.log(shader.fragmentShader);
 	};
 	const updateUniforms = (d: number) => {
 		uniforms.time.value += d;
-		uniforms.offsetX.value = pos.x;
-		uniforms.offsetY.value = pos.y;
+		uniforms.offset.value.set(get(playerPosition).x, 0, get(playerPosition).z);
 	};
 </script>
 
@@ -200,12 +185,34 @@
 	import { DEG2RAD } from 'three/src/math/MathUtils.js';
 	import { useTexture } from '@threlte/extras';
 	import type { WebGLProgramParametersWithUniforms } from 'three/src/renderers/webgl/WebGLPrograms.js';
-	const size = 500,
-		repeatX = 20,
-		repeatY = 20;
-	const detail = 100;
-	let g = new PlaneGeometry(size, size, detail, detail).rotateX(-90 * DEG2RAD);
-	// const originalPositions = g.attributes.position.array.slice();
+	import { get } from 'svelte/store';
+	import { rgbFromColor } from './Utils';
+	//texture
+	const repeatX = 15,
+		repeatY = 15;
+
+	export const generateGradientSkyTexture = () => {
+		var size = 512;
+
+		// create canvas
+		let canvas = document.createElement('canvas');
+		canvas.width = size;
+		canvas.height = size;
+
+		// get context
+		let context = canvas.getContext('2d');
+		if (!context) throw new Error('Failed to generate texture 2d context not supported');
+
+		// draw gradient
+		context.rect(0, 0, size, size);
+		var gradient = context.createLinearGradient(0, size, 0, 0);
+		gradient.addColorStop(0.6, rgbFromColor(WORLD.COLOR.DARK));
+		gradient.addColorStop(0.5, rgbFromColor(WORLD.COLOR.LIGHT));
+		context.fillStyle = gradient;
+		context.fill();
+		return new CanvasTexture(canvas);
+	};
+
 	const awaitedMap = useTexture('sea.jpg', {
 		transform: (texture) => {
 			texture.wrapS = RepeatWrapping;
@@ -216,7 +223,11 @@
 	});
 	useTask((d) => {
 		updateUniforms(d);
-		if ($awaitedMap) $awaitedMap.offset.set((pos.x * repeatX) / size, (-pos.y * repeatY) / size);
+		if ($awaitedMap)
+			$awaitedMap.offset.set(
+				($playerPosition.x * repeatX) / size,
+				(-$playerPosition.z * repeatY) / size
+			);
 	});
 </script>
 
@@ -229,9 +240,13 @@
 		};
 	}}
 />
+<T.Mesh>
+	<T.SphereGeometry args={[size, 32, 32]} position={[0, size, 0]} />
+	<T.MeshBasicMaterial side={BackSide} map={generateGradientSkyTexture()} />
+</T.Mesh>
 {#await awaitedMap then map}
 	<T.Mesh>
-		<T is={g} />
-		<T.MeshStandardMaterial {map} {onBeforeCompile} />
+		<T is={new PlaneGeometry(size, size, detail, detail).rotateX(-90 * DEG2RAD)} />
+		<T.MeshStandardMaterial {map} alphaTest={0.5} {onBeforeCompile} />
 	</T.Mesh>
 {/await}
