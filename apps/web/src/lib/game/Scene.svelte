@@ -1,25 +1,22 @@
 <script lang="ts">
-	import { T, useThrelte } from '@threlte/core';
-	import Player from './Player.svelte';
+	import * as T from 'three';
+	import { T as Th, useThrelte } from '@threlte/core';
+	import PlayerController from './PlayerController/PlayerController.svelte';
 	import Sea from './Sea.svelte';
-	import { SUN, WORLD } from './Constants';
-	import { ACESFilmicToneMapping } from 'three';
+	import { SUN } from './Constants';
 	import Clouds from './Clouds.svelte';
-	import { CanvasTexture } from 'three/src/textures/CanvasTexture.js';
-	import { rgbFromColor } from './Utils';
-	import Others from './Others.svelte';
+	import Instances from './Instances.svelte';
 
-	const { scene, renderer } = useThrelte();
-	renderer.toneMapping = ACESFilmicToneMapping;
+	const { renderer } = useThrelte();
+	renderer.toneMapping = T.ACESFilmicToneMapping;
 	renderer.toneMappingExposure = 1.2;
-	// renderer.domElement.style.background = 'linear-gradient(to top, #A0DEFF 60%, #5AB2FF 100%)';
 </script>
 
-<Player />
-<Others />
-<Clouds />
+<PlayerController />
+<Instances />
+<!-- <Clouds /> -->
 <Sea />
-<T.DirectionalLight
+<Th.DirectionalLight
 	position.y={10}
 	position.z={5}
 	castShadow
@@ -32,4 +29,4 @@
 	color={SUN.COLOR}
 />
 
-<T.AmbientLight intensity={0.8} />
+<Th.AmbientLight intensity={0.8} />

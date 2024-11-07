@@ -1,6 +1,6 @@
 <script lang="ts" context="module">
 	import { BackSide, CanvasTexture, PlaneGeometry, RepeatWrapping, Vector3 } from 'three';
-	import { position as playerPosition } from './Player.svelte';
+	import { position as playerPosition } from '$lib/stores/player';
 	import { SEA, WORLD } from './Constants';
 
 	const size = SEA.SIZE * 0.5;

@@ -61,7 +61,7 @@
 		>
 			{#if variant === 'bicolored'}
 				<div
-					class={cn('absolute bottom-0 top-0 bg-primary', trackPrimaryClassName)}
+					class={cn('bg-primary absolute bottom-0 top-0', trackPrimaryClassName)}
 					style="left: {leftPosition}px; right: {rightPosition}px;"
 				/>
 			{/if}

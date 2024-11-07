@@ -1,6 +1,6 @@
 <script lang="ts" context="module">
 	import { Vector3, type WebGLProgramParametersWithUniforms } from 'three';
-	import { position } from './Player.svelte';
+	import { position } from '$lib/stores/player';
 	const uniforms = {
 		time: {
 			value: 0

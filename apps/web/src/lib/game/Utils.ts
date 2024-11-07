@@ -1,6 +1,5 @@
 import { useThrelte } from '@threlte/core';
 import { BufferAttribute, BufferGeometry, Color, Mesh, Vector2, Vector3 } from 'three';
-import type Geometries from 'three/src/renderers/common/Geometries.js';
 
 export function generateRandomPointsInGrid(
 	x: number,
