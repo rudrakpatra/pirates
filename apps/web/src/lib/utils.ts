@@ -1,7 +1,7 @@
 // src/lib/utils.ts
 import { twMerge } from 'tailwind-merge';
 import { clsx, type ClassValue } from 'clsx';
-import { Poseidon } from 'O1js';
+import { Poseidon } from 'o1js';
 import { stringToField } from '@proto-kit/protocol';
 import type { Transaction } from './stores/chain';
 

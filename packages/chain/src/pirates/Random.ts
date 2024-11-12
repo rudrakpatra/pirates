@@ -8,9 +8,9 @@ import {
   Sign,
   Struct,
   UInt8,
-} from 'o1js';
+} from "o1js";
 
-const shift64divisor = `0b` + `1${'0'.repeat(64)}`;
+const shift64divisor = `0b` + `1${"0".repeat(64)}`;
 
 const bitsToInt64 = (bits: Bool[], maxValue: number): Int64 => {
   if (bits.length > 64) {
